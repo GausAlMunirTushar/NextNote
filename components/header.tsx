@@ -7,25 +7,25 @@ import { useRouter } from "next/navigation"
 import { Save } from "lucide-react"
 
 export function Header() {
-  const router = useRouter()
+	const router = useRouter()
 
-  const handleSave = () => {
-    router.push("/login")
-  }
+	const handleSave = () => {
+		router.push("/login")
+	}
 
-  return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
-      <div className="flex items-center gap-3">
-        <MobileSidebar />
-        <h1 className="text-base sm:text-lg font-semibold">Dashboard</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={handleSave} className="hidden sm:inline-flex bg-transparent">
-          <Save className="h-4 w-4 mr-2" />
-          Save & Sync
-        </Button>
-        <ThemeToggle />
-      </div>
-    </header>
-  )
+	return (
+		<header className="flex h-16 items-center justify-between border-b border-gray-100 bg-white px-4 sm:px-6">
+			<div className="flex items-center gap-3">
+				<MobileSidebar />
+				<h1 className="text-base sm:text-lg font-semibold">Dashboard</h1>
+			</div>
+			<div className="flex items-center gap-2">
+				<Button variant="outline" size="sm" onClick={handleSave} className="hidden sm:inline-flex bg-transparent">
+					<Save className="h-4 w-4 mr-2" />
+					Save & Sync
+				</Button>
+				<ThemeToggle />
+			</div>
+		</header>
+	)
 }

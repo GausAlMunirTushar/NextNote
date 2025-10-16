@@ -9,27 +9,26 @@ import "./globals.css"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
-  title: "NextNote - Modern Note Taking App",
-  description: "A beautiful, fast note-taking application built with Next.js",
-  generator: "v0.app",
+	title: "NextNote - Modern Note Taking App",
+	description: "A beautiful, fast note-taking application built with Next.js",
 }
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode
+	children: React.ReactNode
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <ThemeProvider>
-            {children}
-            <Toaster />
-          </ThemeProvider>
-        </Suspense>
-        <Analytics />
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en" suppressHydrationWarning>
+			<body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+				<Suspense fallback={<div>Loading...</div>}>
+					<ThemeProvider>
+						{children}
+						<Toaster />
+					</ThemeProvider>
+				</Suspense>
+				<Analytics />
+			</body>
+		</html>
+	)
 }
