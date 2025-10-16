@@ -20,7 +20,7 @@ export function Sidebar() {
 	const pathname = usePathname()
 
 	return (
-		<div className="hidden lg:flex h-full w-24 flex-col border-r border-gray-100 bg-white">
+		<div className="hidden lg:flex h-full w-24 flex-col border-r border-gray-100 dark:border-none bg-white dark:bg-background">
 			<div className="flex flex-col h-32 items-center gap-2 px-6 py-2">
 				<Image src="/logo.svg" width={100} height={100} alt="Logo" className="h-8 w-8" />
 
