@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { EditorContent, useEditor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Underline from "@tiptap/extension-underline"
@@ -16,6 +16,7 @@ import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight"
 import TextAlign from "@tiptap/extension-text-align"
 import Superscript from "@tiptap/extension-superscript"
 import Subscript from "@tiptap/extension-subscript"
+import Placeholder from "@tiptap/extension-placeholder"
 import { common, createLowlight } from 'lowlight'
 import {
 	Bold,
@@ -44,6 +45,10 @@ import {
 	Subscript as SubscriptIcon,
 	Type,
 	Sparkles,
+	Table,
+	Image,
+	Divide,
+	FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -64,6 +69,7 @@ import { Toggle } from "@/components/ui/toggle"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
+
 const lowlight = createLowlight(common)
 
 interface NoteEditorProps {
@@ -74,6 +80,90 @@ interface NoteEditorProps {
 }
 
 type Level = 1 | 2 | 3
+
+// Slash command items
+const slashCommands = [
+	{
+		title: "Text",
+		description: "Just start writing with plain text",
+		icon: FileText,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().setParagraph().run()
+		}
+	},
+	{
+		title: "Heading 1",
+		description: "Large section heading",
+		icon: Heading1,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().setHeading({ level: 1 }).run()
+		}
+	},
+	{
+		title: "Heading 2",
+		description: "Medium section heading",
+		icon: Heading2,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().setHeading({ level: 2 }).run()
+		}
+	},
+	{
+		title: "Heading 3",
+		description: "Small section heading",
+		icon: Heading3,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().setHeading({ level: 3 }).run()
+		}
+	},
+	{
+		title: "Bullet List",
+		description: "Create a simple bulleted list",
+		icon: List,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().toggleBulletList().run()
+		}
+	},
+	{
+		title: "Numbered List",
+		description: "Create a numbered list",
+		icon: ListOrdered,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().toggleOrderedList().run()
+		}
+	},
+	{
+		title: "To-do List",
+		description: "Track tasks with a checklist",
+		icon: CheckSquare,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().toggleTaskList().run()
+		}
+	},
+	{
+		title: "Code Block",
+		description: "Capture a code snippet",
+		icon: Code,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().toggleCodeBlock().run()
+		}
+	},
+	{
+		title: "Quote",
+		description: "Capture a quote",
+		icon: Quote,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().toggleBlockquote().run()
+		}
+	},
+	{
+		title: "Divider",
+		description: "Visual line break",
+		icon: Divide,
+		command: ({ editor }: { editor: any }) => {
+			editor.chain().focus().setHorizontalRule().run()
+		}
+	},
+]
 
 export default function NoteEditor({
 	title,
@@ -86,6 +176,8 @@ export default function NoteEditor({
 	const [isMounted, setIsMounted] = useState(false)
 	const [linkUrl, setLinkUrl] = useState("")
 	const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false)
+	const [showSlashCommands, setShowSlashCommands] = useState(false)
+	const [slashCommandQuery, setSlashCommandQuery] = useState("")
 
 	// Run once after hydration
 	useEffect(() => {
@@ -157,6 +249,10 @@ export default function NoteEditor({
 			}),
 			Superscript,
 			Subscript,
+			Placeholder.configure({
+				placeholder: "Type '/' for commands, or start writing...",
+				emptyEditorClass: "is-editor-empty",
+			}),
 		],
 		content,
 		immediatelyRender: false,
@@ -166,6 +262,19 @@ export default function NoteEditor({
 		editorProps: {
 			attributes: {
 				class: "prose prose-lg dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-li:leading-relaxed max-w-none focus:outline-none min-h-[500px] prose-pre:bg-muted prose-pre:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:pl-4 prose-blockquote:italic prose-ul:list-disc prose-ol:list-decimal prose-li:my-1",
+			},
+			handleKeyDown: (view, event) => {
+				if (event.key === "/") {
+					setShowSlashCommands(true)
+					return true
+				}
+				if (showSlashCommands) {
+					if (event.key === "Escape") {
+						setShowSlashCommands(false)
+						return true
+					}
+				}
+				return false
 			},
 		},
 	})
@@ -191,6 +300,20 @@ export default function NoteEditor({
 			setSelectedFormat('normal')
 		}
 	}, [editor?.state.selection])
+
+	// Handle slash commands
+	const handleSlashCommand = useCallback((command: any) => {
+		if (!editor) return
+		command.command({ editor })
+		setShowSlashCommands(false)
+		setSlashCommandQuery("")
+	}, [editor])
+
+	// Filter slash commands based on query
+	const filteredSlashCommands = slashCommands.filter(command =>
+		command.title.toLowerCase().includes(slashCommandQuery.toLowerCase()) ||
+		command.description.toLowerCase().includes(slashCommandQuery.toLowerCase())
+	)
 
 	const fontFamilies = {
 		inter: "Inter, sans-serif",
@@ -612,7 +735,7 @@ export default function NoteEditor({
 			</div>
 
 			{/* Editor Content */}
-			<div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-background to-muted/20">
+			<div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-background to-muted/20 relative">
 				<Input
 					value={title}
 					onChange={(e) => onTitleChange(e.target.value)}
@@ -620,10 +743,47 @@ export default function NoteEditor({
 					className="text-3xl font-bold border-none shadow-none focus-visible:ring-0 px-0 mb-6 placeholder:text-muted-foreground/50 h-auto py-2"
 				/>
 
-				<EditorContent
-					editor={editor}
-					className="min-h-[500px] focus:outline-none"
-				/>
+				<div className="relative">
+					<EditorContent
+						editor={editor}
+						className="min-h-[500px] focus:outline-none"
+					/>
+
+					{/* Slash Commands Menu */}
+					{showSlashCommands && (
+						<div className="absolute top-0 left-0 right-0 bg-popover border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+							<div className="p-2 border-b">
+								<Input
+									placeholder="Filter commands..."
+									value={slashCommandQuery}
+									onChange={(e) => setSlashCommandQuery(e.target.value)}
+									className="border-0 focus-visible:ring-0"
+									autoFocus
+								/>
+							</div>
+							<div className="p-1">
+								{filteredSlashCommands.map((command, index) => (
+									<button
+										key={command.title}
+										className="flex items-center gap-3 w-full p-2 text-sm rounded-md hover:bg-accent transition-colors"
+										onClick={() => handleSlashCommand(command)}
+									>
+										<command.icon className="h-4 w-4 text-muted-foreground" />
+										<div className="flex-1 text-left">
+											<div className="font-medium">{command.title}</div>
+											<div className="text-xs text-muted-foreground">{command.description}</div>
+										</div>
+									</button>
+								))}
+								{filteredSlashCommands.length === 0 && (
+									<div className="p-2 text-sm text-muted-foreground text-center">
+										No commands found
+									</div>
+								)}
+							</div>
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	)
