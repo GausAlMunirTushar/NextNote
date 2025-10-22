@@ -13,6 +13,9 @@ import TaskList from "@tiptap/extension-task-list"
 import TaskItem from "@tiptap/extension-task-item"
 import Blockquote from "@tiptap/extension-blockquote"
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight"
+import TextAlign from "@tiptap/extension-text-align"
+import Superscript from "@tiptap/extension-superscript"
+import Subscript from "@tiptap/extension-subscript"
 import { common, createLowlight } from 'lowlight'
 import {
 	Bold,
@@ -32,6 +35,15 @@ import {
 	Heading2,
 	Heading3,
 	Pilcrow,
+	AlignLeft,
+	AlignCenter,
+	AlignRight,
+	AlignJustify,
+	Minus,
+	Superscript as SuperscriptIcon,
+	Subscript as SubscriptIcon,
+	Type,
+	Sparkles,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,6 +60,9 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
+import { Toggle } from "@/components/ui/toggle"
+import { Separator } from "@/components/ui/separator"
+import { cn } from "@/lib/utils"
 
 const lowlight = createLowlight(common)
 
@@ -67,7 +82,7 @@ export default function NoteEditor({
 	onContentChange,
 }: NoteEditorProps) {
 	const [selectedFormat, setSelectedFormat] = useState("normal")
-	const [selectedFont, setSelectedFont] = useState("geist")
+	const [selectedFont, setSelectedFont] = useState("inter")
 	const [isMounted, setIsMounted] = useState(false)
 	const [linkUrl, setLinkUrl] = useState("")
 	const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false)
@@ -82,34 +97,76 @@ export default function NoteEditor({
 			StarterKit.configure({
 				heading: false,
 				codeBlock: false,
+				bulletList: {
+					HTMLAttributes: {
+						class: "list-disc list-outside ml-6",
+					},
+				},
+				orderedList: {
+					HTMLAttributes: {
+						class: "list-decimal list-outside ml-6",
+					},
+				},
+				blockquote: {
+					HTMLAttributes: {
+						class: "border-l-4 border-border pl-4 italic my-4",
+					},
+				},
 			}),
 			Underline,
-			Heading.configure({ levels: [1, 2, 3] }),
+			Heading.configure({
+				levels: [1, 2, 3],
+				HTMLAttributes: {
+					class: "font-bold tracking-tight",
+				},
+			}),
 			TextStyle,
 			Color,
-			Highlight.configure({ multicolor: true }),
+			Highlight.configure({
+				multicolor: true,
+				HTMLAttributes: {
+					class: "rounded px-1 py-0.5",
+				},
+			}),
 			Link.configure({
 				openOnClick: false,
 				HTMLAttributes: {
-					class: "text-blue-500 underline",
+					class: "text-blue-600 dark:text-blue-400 underline cursor-pointer",
 				},
 			}),
-			TaskList,
+			TaskList.configure({
+				HTMLAttributes: {
+					class: "list-none space-y-2 my-4",
+				},
+			}),
 			TaskItem.configure({
 				nested: true,
 				HTMLAttributes: {
-					class: "flex items-start my-2",
+					class: "flex items-start gap-2",
 				},
 			}),
 			Blockquote,
 			CodeBlockLowlight.configure({
 				lowlight,
+				HTMLAttributes: {
+					class: "bg-muted rounded-lg p-4 font-mono text-sm my-4",
+				},
 			}),
+			TextAlign.configure({
+				types: ['heading', 'paragraph'],
+			}),
+			Superscript,
+			Subscript,
 		],
 		content,
 		immediatelyRender: false,
 		onUpdate: ({ editor }) => {
 			onContentChange(editor.getHTML())
+		},
+		editorProps: {
+			attributes: {
+				class: "prose prose-lg dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-p:leading-relaxed prose-li:leading-relaxed max-w-none focus:outline-none min-h-[500px] prose-pre:bg-muted prose-pre:rounded-lg prose-blockquote:border-l-4 prose-blockquote:border-border prose-blockquote:pl-4 prose-blockquote:italic prose-ul:list-disc prose-ol:list-decimal prose-li:my-1",
+			},
 		},
 	})
 
@@ -120,20 +177,35 @@ export default function NoteEditor({
 		}
 	}, [content, editor])
 
+	// Update selected format based on editor state
+	useEffect(() => {
+		if (!editor) return
+
+		if (editor.isActive('heading', { level: 1 })) {
+			setSelectedFormat('heading1')
+		} else if (editor.isActive('heading', { level: 2 })) {
+			setSelectedFormat('heading2')
+		} else if (editor.isActive('heading', { level: 3 })) {
+			setSelectedFormat('heading3')
+		} else {
+			setSelectedFormat('normal')
+		}
+	}, [editor?.state.selection])
+
 	const fontFamilies = {
+		inter: "Inter, sans-serif",
 		geist: "Geist Sans, sans-serif",
 		mono: "Geist Mono, monospace",
 		serif: "Georgia, serif",
+		system: "system-ui, sans-serif",
 	}
 
 	const setHeading = (level: Level | null) => {
 		if (!editor) return
 		if (level) {
 			editor.chain().focus().setHeading({ level }).run()
-			setSelectedFormat(`heading${level}`)
 		} else {
 			editor.chain().focus().setParagraph().run()
-			setSelectedFormat("normal")
 		}
 	}
 
@@ -152,10 +224,13 @@ export default function NoteEditor({
 
 	const textColors = [
 		{ name: "Default", value: "" },
+		{ name: "Gray", value: "#6b7280" },
 		{ name: "Red", value: "#dc2626" },
-		{ name: "Blue", value: "#2563eb" },
+		{ name: "Orange", value: "#ea580c" },
+		{ name: "Amber", value: "#d97706" },
 		{ name: "Green", value: "#16a34a" },
-		{ name: "Yellow", value: "#ca8a04" },
+		{ name: "Blue", value: "#2563eb" },
+		{ name: "Indigo", value: "#4f46e5" },
 		{ name: "Purple", value: "#9333ea" },
 		{ name: "Pink", value: "#db2777" },
 	]
@@ -167,340 +242,387 @@ export default function NoteEditor({
 		{ name: "Blue", value: "#bfdbfe" },
 		{ name: "Pink", value: "#fbcfe8" },
 		{ name: "Purple", value: "#e9d5ff" },
+		{ name: "Orange", value: "#fed7aa" },
+		{ name: "Red", value: "#fecaca" },
 	]
 
 	if (!isMounted || !editor) {
-		return <div className="p-4 text-sm text-muted-foreground">Loading editor...</div>
+		return (
+			<div className="flex items-center justify-center h-64">
+				<div className="flex items-center gap-3 text-muted-foreground">
+					<Sparkles className="h-5 w-5 animate-pulse" />
+					<span>Loading editor...</span>
+				</div>
+			</div>
+		)
 	}
 
 	return (
-		<div className="flex flex-col h-full">
-			{/* Toolbar */}
-			<div className="border-b border-border bg-muted/30 p-4">
-				<div className="flex flex-wrap items-center gap-2">
-					{/* Heading Selector */}
-					<Select value={selectedFormat} onValueChange={(value) => {
-						if (value === "normal") {
-							setHeading(null)
-						} else if (value === "heading1") {
-							setHeading(1)
-						} else if (value === "heading2") {
-							setHeading(2)
-						} else if (value === "heading3") {
-							setHeading(3)
-						}
-					}}>
-						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Normal" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="normal">
-								<div className="flex items-center gap-2">
-									<Pilcrow className="h-4 w-4" />
-									Normal Text
-								</div>
-							</SelectItem>
-							<SelectItem value="heading1">
-								<div className="flex items-center gap-2">
-									<Heading1 className="h-4 w-4" />
-									Heading 1
-								</div>
-							</SelectItem>
-							<SelectItem value="heading2">
-								<div className="flex items-center gap-2">
-									<Heading2 className="h-4 w-4" />
-									Heading 2
-								</div>
-							</SelectItem>
-							<SelectItem value="heading3">
-								<div className="flex items-center gap-2">
-									<Heading3 className="h-4 w-4" />
-									Heading 3
-								</div>
-							</SelectItem>
-						</SelectContent>
-					</Select>
+		<div className="flex flex-col h-full bg-background rounded-lg border shadow-sm">
+			{/* Enhanced Toolbar */}
+			<div className="border-b bg-card/50 backdrop-blur-sm">
+				<div className="p-3">
+					{/* First Row - Text Formatting */}
+					<div className="flex flex-wrap items-center gap-1 mb-3">
+						{/* Text Format */}
+						<Select value={selectedFormat} onValueChange={(value) => {
+							if (value === "normal") {
+								setHeading(null)
+							} else if (value === "heading1") {
+								setHeading(1)
+							} else if (value === "heading2") {
+								setHeading(2)
+							} else if (value === "heading3") {
+								setHeading(3)
+							}
+						}}>
+							<SelectTrigger className="w-32 h-8">
+								<SelectValue placeholder="Normal" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="normal">
+									<div className="flex items-center gap-2">
+										<Pilcrow className="h-4 w-4" />
+										<span>Normal</span>
+									</div>
+								</SelectItem>
+								<SelectItem value="heading1">
+									<div className="flex items-center gap-2">
+										<Heading1 className="h-4 w-4" />
+										<span>Heading 1</span>
+									</div>
+								</SelectItem>
+								<SelectItem value="heading2">
+									<div className="flex items-center gap-2">
+										<Heading2 className="h-4 w-4" />
+										<span>Heading 2</span>
+									</div>
+								</SelectItem>
+								<SelectItem value="heading3">
+									<div className="flex items-center gap-2">
+										<Heading3 className="h-4 w-4" />
+										<span>Heading 3</span>
+									</div>
+								</SelectItem>
+							</SelectContent>
+						</Select>
 
-					{/* Font Family */}
-					<Select value={selectedFont} onValueChange={setSelectedFont}>
-						<SelectTrigger className="w-40">
-							<SelectValue placeholder="Font Family" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="geist">Geist Sans</SelectItem>
-							<SelectItem value="mono">Geist Mono</SelectItem>
-							<SelectItem value="serif">Serif</SelectItem>
-						</SelectContent>
-					</Select>
+						{/* Font Family */}
+						<Select value={selectedFont} onValueChange={setSelectedFont}>
+							<SelectTrigger className="w-32 h-8">
+								<SelectValue placeholder="Font" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="inter">Inter</SelectItem>
+								<SelectItem value="geist">Geist Sans</SelectItem>
+								<SelectItem value="mono">Geist Mono</SelectItem>
+								<SelectItem value="serif">Serif</SelectItem>
+								<SelectItem value="system">System</SelectItem>
+							</SelectContent>
+						</Select>
 
-					<div className="h-6 w-px bg-border mx-2" />
+						<Separator orientation="vertical" className="h-6 mx-1" />
 
-					{/* Basic Formatting */}
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("bold") ? "bg-accent text-accent-foreground" : ""
-							}`}
-						onClick={() => editor.chain().focus().toggleBold().run()}
-					>
-						<Bold className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("italic") ? "bg-accent text-accent-foreground" : ""
-							}`}
-						onClick={() => editor.chain().focus().toggleItalic().run()}
-					>
-						<Italic className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("underline")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleUnderline().run()}
-					>
-						<UnderlineIcon className="h-4 w-4" />
-					</Button>
+						{/* Basic Formatting */}
+						<Toggle
+							pressed={editor.isActive("bold")}
+							onPressedChange={() => editor.chain().focus().toggleBold().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<Bold className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("italic")}
+							onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<Italic className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("underline")}
+							onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<UnderlineIcon className="h-4 w-4" />
+						</Toggle>
 
-					<div className="h-6 w-px bg-border mx-2" />
+						<Separator orientation="vertical" className="h-6 mx-1" />
 
-					{/* Lists */}
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("bulletList")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleBulletList().run()}
-					>
-						<List className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("orderedList")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleOrderedList().run()}
-					>
-						<ListOrdered className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("taskList")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleTaskList().run()}
-					>
-						<CheckSquare className="h-4 w-4" />
-					</Button>
+						{/* Text Alignment */}
+						<Toggle
+							pressed={editor.isActive({ textAlign: 'left' })}
+							onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<AlignLeft className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive({ textAlign: 'center' })}
+							onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<AlignCenter className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive({ textAlign: 'right' })}
+							onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<AlignRight className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive({ textAlign: 'justify' })}
+							onPressedChange={() => editor.chain().focus().setTextAlign('justify').run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<AlignJustify className="h-4 w-4" />
+						</Toggle>
+					</div>
 
-					<div className="h-6 w-px bg-border mx-2" />
+					{/* Second Row - Advanced Formatting */}
+					<div className="flex flex-wrap items-center gap-1">
+						{/* Lists */}
+						<Toggle
+							pressed={editor.isActive("bulletList")}
+							onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<List className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("orderedList")}
+							onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<ListOrdered className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("taskList")}
+							onPressedChange={() => editor.chain().focus().toggleTaskList().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<CheckSquare className="h-4 w-4" />
+						</Toggle>
 
-					{/* Text Color */}
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8"
-							>
-								<Palette className="h-4 w-4" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-48">
-							<div className="grid gap-2">
-								<Label>Text Color</Label>
-								<div className="grid grid-cols-4 gap-2">
-									{textColors.map((color) => (
-										<Button
-											key={color.value || "default"}
-											variant="ghost"
-											size="sm"
-											className="h-8 w-8 p-0"
-											onClick={() => editor.chain().focus().setColor(color.value).run()}
-										>
-											<div
-												className="h-4 w-4 rounded border"
+						<Separator orientation="vertical" className="h-6 mx-1" />
+
+						{/* Block Elements */}
+						<Toggle
+							pressed={editor.isActive("blockquote")}
+							onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<Quote className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("codeBlock")}
+							onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<Code className="h-4 w-4" />
+						</Toggle>
+
+						<Separator orientation="vertical" className="h-6 mx-1" />
+
+						{/* Text Color */}
+						<Popover>
+							<PopoverTrigger asChild>
+								<Toggle
+									size="sm"
+									className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+								>
+									<Palette className="h-4 w-4" />
+								</Toggle>
+							</PopoverTrigger>
+							<PopoverContent className="w-64">
+								<div className="grid gap-3">
+									<Label>Text Color</Label>
+									<div className="grid grid-cols-5 gap-2">
+										{textColors.map((color) => (
+											<button
+												key={color.value || "default"}
+												className={cn(
+													"h-8 w-8 rounded-md border-2 flex items-center justify-center transition-all hover:scale-110",
+													color.value ? "" : "border-dashed"
+												)}
 												style={{
 													backgroundColor: color.value || "transparent",
-													borderColor: color.value ? color.value : "#ccc",
+													borderColor: color.value ? color.value : "hsl(var(--border))",
 												}}
-											/>
-										</Button>
-									))}
+												onClick={() => {
+													if (color.value) {
+														editor.chain().focus().setColor(color.value).run()
+													} else {
+														editor.chain().focus().unsetColor().run()
+													}
+												}}
+											>
+												{!color.value && <Type className="h-3 w-3 text-muted-foreground" />}
+											</button>
+										))}
+									</div>
 								</div>
-								<Button
-									variant="outline"
-									size="sm"
-									onClick={() => editor.chain().focus().unsetColor().run()}
-								>
-									Reset Color
-								</Button>
-							</div>
-						</PopoverContent>
-					</Popover>
+							</PopoverContent>
+						</Popover>
 
-					{/* Highlight Color */}
-					<Popover>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8"
-							>
-								<Highlighter className="h-4 w-4" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-48">
-							<div className="grid gap-2">
-								<Label>Highlight Color</Label>
-								<div className="grid grid-cols-4 gap-2">
-									{highlightColors.map((color) => (
-										<Button
-											key={color.value || "default"}
-											variant="ghost"
-											size="sm"
-											className="h-8 w-8 p-0"
-											onClick={() => editor.chain().focus().toggleHighlight({ color: color.value }).run()}
-										>
-											<div
-												className="h-4 w-4 rounded border"
+						{/* Highlight Color */}
+						<Popover>
+							<PopoverTrigger asChild>
+								<Toggle
+									size="sm"
+									className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+								>
+									<Highlighter className="h-4 w-4" />
+								</Toggle>
+							</PopoverTrigger>
+							<PopoverContent className="w-64">
+								<div className="grid gap-3">
+									<Label>Highlight Color</Label>
+									<div className="grid grid-cols-4 gap-2">
+										{highlightColors.map((color) => (
+											<button
+												key={color.value || "default"}
+												className={cn(
+													"h-8 w-8 rounded-md border flex items-center justify-center transition-all hover:scale-110",
+													color.value ? "" : "border-dashed"
+												)}
 												style={{
 													backgroundColor: color.value || "transparent",
-													borderColor: color.value ? color.value : "#ccc",
+													borderColor: color.value ? color.value : "hsl(var(--border))",
 												}}
-											/>
-										</Button>
-									))}
+												onClick={() => {
+													if (color.value) {
+														editor.chain().focus().toggleHighlight({ color: color.value }).run()
+													} else {
+														editor.chain().focus().unsetHighlight().run()
+													}
+												}}
+											>
+												{!color.value && <Minus className="h-3 w-3 text-muted-foreground" />}
+											</button>
+										))}
+									</div>
 								</div>
-								<Button
-									variant="outline"
+							</PopoverContent>
+						</Popover>
+
+						<Separator orientation="vertical" className="h-6 mx-1" />
+
+						{/* Link */}
+						<Popover open={isLinkPopoverOpen} onOpenChange={setIsLinkPopoverOpen}>
+							<PopoverTrigger asChild>
+								<Toggle
+									pressed={editor.isActive("link")}
 									size="sm"
-									onClick={() => editor.chain().focus().unsetHighlight().run()}
+									className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
 								>
-									Reset Highlight
-								</Button>
-							</div>
-						</PopoverContent>
-					</Popover>
-
-					<div className="h-6 w-px bg-border mx-2" />
-
-					{/* Block Elements */}
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("blockquote")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleBlockquote().run()}
-					>
-						<Quote className="h-4 w-4" />
-					</Button>
-
-					<Button
-						variant="ghost"
-						size="icon"
-						className={`h-8 w-8 ${editor.isActive("codeBlock")
-							? "bg-accent text-accent-foreground"
-							: ""
-							}`}
-						onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-					>
-						<Code className="h-4 w-4" />
-					</Button>
-
-					{/* Link */}
-					<Popover open={isLinkPopoverOpen} onOpenChange={setIsLinkPopoverOpen}>
-						<PopoverTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className={`h-8 w-8 ${editor.isActive("link")
-									? "bg-accent text-accent-foreground"
-									: ""
-									}`}
-							>
-								<LinkIcon className="h-4 w-4" />
-							</Button>
-						</PopoverTrigger>
-						<PopoverContent className="w-80">
-							<div className="grid gap-4">
-								<Label>Insert Link</Label>
-								<div className="flex gap-2">
-									<Input
-										placeholder="https://example.com"
-										value={linkUrl}
-										onChange={(e) => setLinkUrl(e.target.value)}
-										onKeyPress={(e) => {
-											if (e.key === 'Enter') {
-												setLink()
-											}
-										}}
-									/>
-									<Button onClick={setLink}>
-										Apply
-									</Button>
+									<LinkIcon className="h-4 w-4" />
+								</Toggle>
+							</PopoverTrigger>
+							<PopoverContent className="w-80">
+								<div className="grid gap-4">
+									<Label>Insert Link</Label>
+									<div className="flex gap-2">
+										<Input
+											placeholder="https://example.com"
+											value={linkUrl}
+											onChange={(e) => setLinkUrl(e.target.value)}
+											onKeyPress={(e) => {
+												if (e.key === 'Enter') {
+													setLink()
+												}
+											}}
+											className="flex-1"
+										/>
+										<Button onClick={setLink} size="sm">
+											Apply
+										</Button>
+									</div>
+									{editor.isActive("link") && (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => {
+												editor.chain().focus().unsetLink().run()
+												setIsLinkPopoverOpen(false)
+											}}
+										>
+											Remove Link
+										</Button>
+									)}
 								</div>
-								{editor.isActive("link") && (
-									<Button
-										variant="outline"
-										onClick={() => {
-											editor.chain().focus().unsetLink().run()
-											setIsLinkPopoverOpen(false)
-										}}
-									>
-										Remove Link
-									</Button>
-								)}
-							</div>
-						</PopoverContent>
-					</Popover>
+							</PopoverContent>
+						</Popover>
 
-					<div className="h-6 w-px bg-border mx-2" />
+						<Separator orientation="vertical" className="h-6 mx-1" />
 
-					{/* Undo / Redo */}
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8"
-						onClick={() => editor.chain().focus().undo().run()}
-					>
-						<Undo className="h-4 w-4" />
-					</Button>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8"
-						onClick={() => editor.chain().focus().redo().run()}
-					>
-						<Redo className="h-4 w-4" />
-					</Button>
+						{/* Superscript & Subscript */}
+						<Toggle
+							pressed={editor.isActive("superscript")}
+							onPressedChange={() => editor.chain().focus().toggleSuperscript().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<SuperscriptIcon className="h-4 w-4" />
+						</Toggle>
+						<Toggle
+							pressed={editor.isActive("subscript")}
+							onPressedChange={() => editor.chain().focus().toggleSubscript().run()}
+							size="sm"
+							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+						>
+							<SubscriptIcon className="h-4 w-4" />
+						</Toggle>
+
+						<Separator orientation="vertical" className="h-6 mx-1" />
+
+						{/* Undo / Redo */}
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-8 w-8"
+							onClick={() => editor.chain().focus().undo().run()}
+							disabled={!editor.can().undo()}
+						>
+							<Undo className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-8 w-8"
+							onClick={() => editor.chain().focus().redo().run()}
+							disabled={!editor.can().redo()}
+						>
+							<Redo className="h-4 w-4" />
+						</Button>
+					</div>
 				</div>
 			</div>
 
-			{/* Editor */}
-			<div className="flex-1 p-6 overflow-y-auto">
+			{/* Editor Content */}
+			<div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-background to-muted/20">
 				<Input
 					value={title}
 					onChange={(e) => onTitleChange(e.target.value)}
 					placeholder="Untitled Document"
-					className="text-2xl font-bold border-none shadow-none focus-visible:ring-0 px-0 mb-4"
+					className="text-3xl font-bold border-none shadow-none focus-visible:ring-0 px-0 mb-6 placeholder:text-muted-foreground/50 h-auto py-2"
 				/>
 
 				<EditorContent
 					editor={editor}
-					className="prose dark:prose-invert max-w-none focus:outline-none min-h-[500px] text-foreground"
+					className="min-h-[500px] focus:outline-none"
 				/>
 			</div>
 		</div>
