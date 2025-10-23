@@ -27,6 +27,8 @@ interface NotesStore {
 	deleteLabel: (id: string) => void;
 	filterNotesByLabel: (labelId: string) => Note[];
 	sortNotesByDate: (order: "asc" | "desc") => Note[];
+	shareNote: (id: string) => string; // Returns shareable URL
+	getShareableNote: (id: string) => { title: string; content: string } | null;
 }
 
 export const useNotesStore = create<NotesStore>()(
@@ -93,6 +95,18 @@ export const useNotesStore = create<NotesStore>()(
 						: new Date(b.updatedAt).getTime() -
 						  new Date(a.updatedAt).getTime()
 				);
+			},
+			shareNote: (id: string) => {
+				// In a real app, this would generate a unique share token
+				return `${window.location.origin}/notes/${id}`;
+			},
+			getShareableNote: (id: string) => {
+				const note = get().notes.find((n) => n.id === id);
+				if (!note) return null;
+				return {
+					title: note.title,
+					content: note.content,
+				};
 			},
 		}),
 		{
