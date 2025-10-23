@@ -7,7 +7,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    router.push("/dashboard/new-note")
+    router.push("//new")
   }, [router])
 
   return null

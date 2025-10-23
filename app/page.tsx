@@ -20,7 +20,7 @@ export default function HomePage() {
 								<Link href="/login">Sign in</Link>
 							</Button>
 							<Button asChild>
-								<Link href="/dashboard/new-note">Start Writing</Link>
+								<Link href="//new">Start Writing</Link>
 							</Button>
 						</div>
 					</div>
@@ -43,10 +43,10 @@ export default function HomePage() {
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" asChild className="text-base">
-							<Link href="/dashboard/new-note">Start Writing Free</Link>
+							<Link href="/new">Start Writing Free</Link>
 						</Button>
 						<Button size="lg" variant="outline" asChild className="text-base bg-transparent">
-							<Link href="/dashboard/all-notes">View Demo</Link>
+							<Link href="/new">View Demo</Link>
 						</Button>
 					</div>
 				</div>
@@ -99,7 +99,7 @@ export default function HomePage() {
 						No credit card required. No signup needed. Just start writing.
 					</p>
 					<Button size="lg" asChild className="text-base">
-						<Link href="/dashboard/new-note">Create Your First Note</Link>
+						<Link href="//new">Create Your First Note</Link>
 					</Button>
 				</div>
 			</section>

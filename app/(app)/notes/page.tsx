@@ -64,7 +64,7 @@ export default function AllNotesPage() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <h2 className="text-xl sm:text-2xl font-bold">All Notes</h2>
-        <Button onClick={() => router.push("/dashboard/new-note")} size="sm">
+        <Button onClick={() => router.push("//new")} size="sm">
           <Plus className="h-4 w-4 sm:mr-2" />
           <span className="hidden sm:inline">Create New Note</span>
         </Button>
@@ -99,7 +99,7 @@ export default function AllNotesPage() {
           <p className="text-muted-foreground mb-4">
             {searchQuery ? "No notes found matching your search." : "No notes yet. Create your first note!"}
           </p>
-          {!searchQuery && <Button onClick={() => router.push("/dashboard/new-note")}>Create Note</Button>}
+          {!searchQuery && <Button onClick={() => router.push("//new")}>Create Note</Button>}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

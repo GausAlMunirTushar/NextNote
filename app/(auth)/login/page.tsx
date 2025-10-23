@@ -37,7 +37,7 @@ export default function LoginPage() {
 			description: "You have successfully logged in.",
 		})
 
-		router.push("/dashboard/new-note")
+		router.push("//new")
 		setIsLoading(false)
 	}
 

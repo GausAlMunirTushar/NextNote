@@ -36,7 +36,7 @@ export default function SignupPage() {
 			description: "Welcome to NextNote. Start taking notes now.",
 		})
 
-		router.push("/dashboard/new-note")
+		router.push("//new")
 		setIsLoading(false)
 	}
 
