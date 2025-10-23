@@ -38,7 +38,7 @@ export default function NewNotePage() {
 			description: "Your note has been saved successfully.",
 		})
 
-		router.push("//notes")
+		router.push("/notes")
 	}
 
 	return (
@@ -48,7 +48,7 @@ export default function NewNotePage() {
 				<div className="flex gap-2 w-full sm:w-auto">
 					<Button
 						variant="outline"
-						onClick={() => router.push("//notes")}
+						onClick={() => router.push("/notes")}
 						className="flex-1 sm:flex-none"
 						size="sm"
 					>

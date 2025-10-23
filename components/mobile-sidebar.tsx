@@ -20,13 +20,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import Image from "next/image"
 
 const navigation = [
-	{ name: "New Note", href: "//new", icon: FilePlus },
-	{ name: "All Notes", href: "//notes", icon: Files },
-	{ name: "Search Notes", href: "//search-notes", icon: Search },
-	{ name: "Feedback", href: "//feedback", icon: MessageSquare },
-	{ name: "Blog", href: "//blog", icon: BookOpen },
-	{ name: "Settings", href: "//settings", icon: Settings },
-	{ name: "More", href: "//more", icon: MoreHorizontal },
+	{ name: "New Note", href: "/new", icon: FilePlus },
+	{ name: "All Notes", href: "/notes", icon: Files },
+	{ name: "Feedback", href: "/feedback", icon: MessageSquare },
+	{ name: "Blog", href: "/blog", icon: BookOpen },
+	{ name: "Settings", href: "/settings", icon: Settings },
+	{ name: "More", href: "/more", icon: MoreHorizontal },
 ]
 
 export function MobileSidebar() {
