@@ -534,7 +534,7 @@ export default function NoteEditor({
 							size="sm"
 							className="h-8 w-8 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
 						>
-							<CheckSquare className="h-6 w-6 bg-primary" />
+							<CheckSquare className="h-6 w-6" />
 						</Toggle>
 
 						<Separator orientation="vertical" className="h-6 mx-1" />

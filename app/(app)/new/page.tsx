@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { RichTextEditor } from "@/components/rich-text-editor"
 import { Button } from "@/components/ui/button"
 import { useNotesStore } from "@/store/notes-store"
 import { useToast } from "@/hooks/use-toast"
