@@ -5,6 +5,15 @@ import { MobileSidebar } from "@/components/mobile-sidebar"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Save } from "lucide-react"
+import { ProfileDropdown } from "@/views/profile/ProfileDropdown"
+
+  const userData = {
+    name: "Alex Johnson",
+    email: "alex.johnson@example.com",
+    avatar: "/avatars/alex.jpg", // Optional - will use fallback if not provided
+    plan: "Pro",
+    status: "online" as const // "online" | "away" | "offline"
+  }
 
 export function Header() {
 	const router = useRouter()
@@ -25,6 +34,7 @@ export function Header() {
 					Save & Sync
 				</Button>
 				<ThemeToggle />
+				<ProfileDropdown user={userData} />
 			</div>
 		</header>
 	)
