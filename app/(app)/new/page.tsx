@@ -156,7 +156,9 @@ export default function NewNotePage() {
 	return (
 		<div className="h-full flex flex-col">
 			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-				<h2 className="text-xl sm:text-2xl font-bold">New Note</h2>
+				<h2 className="text-xl sm:text-2xl font-bold">
+					{title.trim() ? title : "Untitled Document"}
+				</h2>
 				<div className="flex gap-2 w-full sm:w-auto">
 					<Button
 						variant="outline"
