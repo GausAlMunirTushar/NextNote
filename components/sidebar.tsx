@@ -3,7 +3,7 @@
 
 import { useState, useRef } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
 	FilePlus,
 	Files,
@@ -102,6 +102,7 @@ export function Sidebar({ className }: SidebarProps) {
 	})
 
 	const pathname = usePathname()
+	const router = useRouter()
 	const editInputRef = useRef<HTMLInputElement>(null)
 
 	const { folders, getSubfolders, addFolder, updateFolder, deleteFolder } = useFoldersStore()
@@ -111,7 +112,11 @@ export function Sidebar({ className }: SidebarProps) {
 		setIsCollapsed(!isCollapsed)
 	}
 
-	const toggleFolder = (folderId: string) => {
+	const toggleFolder = (folderId: string, e?: React.MouseEvent) => {
+		if (e) {
+			e.preventDefault()
+			e.stopPropagation()
+		}
 		setExpandedFolders(prev => {
 			const newSet = new Set(prev)
 			if (newSet.has(folderId)) {
@@ -155,10 +160,20 @@ export function Sidebar({ className }: SidebarProps) {
 		setEditFolderName("")
 	}
 
-	const handleDeleteFolder = (folderId: string) => {
+	const handleDeleteFolder = (folderId: string, e?: React.MouseEvent) => {
+		if (e) {
+			e.preventDefault()
+			e.stopPropagation()
+		}
 		if (confirm("Are you sure you want to delete this folder? Notes in this folder will not be deleted.")) {
 			deleteFolder(folderId)
 		}
+	}
+
+	const handleFolderClick = (folder: any, e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		router.push(`/f/${folder.slug}`)
 	}
 
 	const getFolderById = (id: string) => {
@@ -217,126 +232,162 @@ export function Sidebar({ className }: SidebarProps) {
 		const isEditing = editingFolderId === folder.id
 
 		return (
-			<div>
-				{/* Folder */}
-				<div
-					className={cn(
-						"flex items-center gap-2 py-2 px-3 rounded-lg transition-all cursor-pointer group",
-						"hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-						isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-						isCollapsed && "justify-center"
-					)}
-					style={{ marginLeft: isCollapsed ? 0 : level * 12 }}
-					onDoubleClick={(e) => handleStartRename(folder, e)}
-					onClick={() => !isCollapsed && subfolders.length > 0 ? toggleFolder(folder.id) : null}
-				>
-					{!isCollapsed && subfolders.length > 0 ? (
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								toggleFolder(folder.id)
-							}}
-							className="flex items-center justify-center w-4 h-4"
-						>
-							{isExpanded ? (
-								<ChevronDown className="h-3 w-3" />
-							) : (
-								<ChevronRight className="h-3 w-3" />
-							)}
-						</button>
-					) : !isCollapsed ? (
-						<div className="w-4" />
-					) : null}
-
-					<Link
-						href={`/f/${folder.slug}`}
-						className="flex items-center gap-2 flex-1"
-						onClick={(e) => {
-							if (!isCollapsed && subfolders.length > 0) {
-								e.preventDefault()
-							}
-						}}
+			<div className="select-none">
+				{/* Folder Row */}
+				<div className="relative group">
+					<div
+						className={cn(
+							"flex items-center gap-2 py-2 px-3 rounded-lg transition-all cursor-pointer",
+							"hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+							isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+							isCollapsed && "justify-center"
+						)}
+						style={{ marginLeft: isCollapsed ? 0 : level * 12 }}
+						onDoubleClick={(e) => handleStartRename(folder, e)}
 					>
-						{isExpanded ? (
-							<FolderOpen className="h-4 w-4 flex-shrink-0" style={{ color: folder.color }} />
-						) : (
-							<Folder className="h-4 w-4 flex-shrink-0" style={{ color: folder.color }} />
+						{/* Chevron for expand/collapse */}
+						{!isCollapsed && subfolders.length > 0 && (
+							<button
+								onClick={(e) => toggleFolder(folder.id, e)}
+								className="flex items-center justify-center w-4 h-4 hover:bg-sidebar-accent/50 rounded transition-colors"
+							>
+								{isExpanded ? (
+									<ChevronDown className="h-3 w-3" />
+								) : (
+									<ChevronRight className="h-3 w-3" />
+								)}
+							</button>
 						)}
 
-						{!isCollapsed && (
-							<div className="flex items-center justify-between flex-1 min-w-0">
-								{isEditing ? (
-									<Input
-										ref={editInputRef}
-										value={editFolderName}
-										onChange={(e) => setEditFolderName(e.target.value)}
-										onBlur={() => handleRename(folder.id)}
-										onKeyDown={(e) => {
-											if (e.key === 'Enter') handleRename(folder.id)
-											if (e.key === 'Escape') setEditingFolderId(null)
-										}}
-										className="h-6 text-sm px-1"
-										onClick={(e) => e.stopPropagation()}
-									/>
-								) : (
-									<>
-										<span className="truncate">{folder.name}</span>
-										<span className="text-xs text-muted-foreground px-1">
-											{notes.length}
-										</span>
-									</>
-								)}
+						{/* Spacer when no chevron */}
+						{!isCollapsed && subfolders.length === 0 && (
+							<div className="w-4" />
+						)}
+
+						{/* Folder Icon and Name */}
+						{isCollapsed ? (
+							<SidebarTooltip content={folder.name}>
+								<button
+									onClick={(e) => handleFolderClick(folder, e)}
+									className="flex items-center justify-center"
+								>
+									<Folder className="h-4 w-4" style={{ color: folder.color }} />
+								</button>
+							</SidebarTooltip>
+						) : (
+							<div className="flex items-center gap-2 flex-1 min-w-0">
+								{/* Folder Icon */}
+								<button
+									onClick={(e) => handleFolderClick(folder, e)}
+									className="flex items-center justify-center flex-shrink-0"
+								>
+									{isExpanded ? (
+										<FolderOpen className="h-4 w-4" style={{ color: folder.color }} />
+									) : (
+										<Folder className="h-4 w-4" style={{ color: folder.color }} />
+									)}
+								</button>
+
+								{/* Folder Name - Editable or Clickable */}
+								<div className="flex items-center justify-between flex-1 min-w-0">
+									{isEditing ? (
+										<Input
+											ref={editInputRef}
+											value={editFolderName}
+											onChange={(e) => setEditFolderName(e.target.value)}
+											onBlur={() => handleRename(folder.id)}
+											onKeyDown={(e) => {
+												if (e.key === 'Enter') handleRename(folder.id)
+												if (e.key === 'Escape') setEditingFolderId(null)
+											}}
+											className="h-6 text-sm px-1 flex-1"
+											onClick={(e) => e.stopPropagation()}
+										/>
+									) : (
+										<>
+											<button
+												onClick={(e) => handleFolderClick(folder, e)}
+												className="truncate flex-1 text-left hover:underline"
+											>
+												{folder.name}
+											</button>
+											<span className="text-xs text-muted-foreground px-1 flex-shrink-0">
+												{notes.length}
+											</span>
+										</>
+									)}
+								</div>
 							</div>
 						)}
-					</Link>
 
-					{/* Three dots menu for folder actions */}
-					{!isCollapsed && !isEditing && (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button
-									variant="ghost"
-									size="sm"
-									className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+						{/* Three dots menu for folder actions */}
+						{!isCollapsed && !isEditing && (
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="ghost"
+										size="sm"
+										className={cn(
+											"h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0",
+											"hover:bg-sidebar-accent/50"
+										)}
+										onClick={(e) => {
+											e.preventDefault()
+											e.stopPropagation()
+										}}
+									>
+										<MoreHorizontal className="h-3 w-3" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									align="end"
+									className="w-48"
 									onClick={(e) => e.stopPropagation()}
 								>
-									<MoreHorizontal className="h-3 w-3" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-48">
-								<DropdownMenuItem onClick={(e) => handleStartRename(folder, e)}>
-									<Edit className="h-4 w-4 mr-2" />
-									Rename
-								</DropdownMenuItem>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem
-									onClick={() => handleDeleteFolder(folder.id)}
-									className="text-destructive"
-								>
-									<Trash2 className="h-4 w-4 mr-2" />
-									Delete Folder
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					)}
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.preventDefault()
+											e.stopPropagation()
+											handleStartRename(folder, e)
+										}}
+									>
+										<Edit className="h-4 w-4 mr-2" />
+										Rename
+									</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem
+										onClick={(e) => {
+											e.preventDefault()
+											e.stopPropagation()
+											handleDeleteFolder(folder.id, e)
+										}}
+										className="text-destructive focus:text-destructive"
+									>
+										<Trash2 className="h-4 w-4 mr-2" />
+										Delete Folder
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
+						)}
+					</div>
 				</div>
 
 				{/* Subfolders and Notes */}
 				{!isCollapsed && isExpanded && (
-					<div className="ml-4">
+					<div className="ml-4 mt-1">
 						{/* Notes in this folder */}
 						{notes.map(note => (
 							<Link
 								key={note.id}
 								href={`/notes/${note.id}`}
 								className={cn(
-									"flex items-center gap-2 py-1 px-3 rounded-lg transition-all text-sm",
+									"flex items-center gap-2 py-1 px-3 rounded-lg transition-all text-sm mb-1",
 									"hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
 									pathname === `/notes/${note.id}` && "bg-sidebar-accent text-sidebar-accent-foreground"
 								)}
-								style={{ marginLeft: 12 }}
+								style={{ marginLeft: 8 }}
 							>
-								<div className="w-2 h-2 rounded-full bg-muted-foreground" />
+								<div className="w-2 h-2 rounded-full bg-muted-foreground flex-shrink-0" />
 								<span className="truncate flex-1">{note.title}</span>
 							</Link>
 						))}
@@ -412,7 +463,7 @@ export function Sidebar({ className }: SidebarProps) {
 								"text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 							)}
 						>
-							<PanelRightOpen  className="h-4 w-4" />
+							<PanelRightClose className="h-4 w-4" />
 						</button>
 					) : (
 						<div className={cn(
@@ -430,7 +481,7 @@ export function Sidebar({ className }: SidebarProps) {
 									"hover:scale-110"
 								)}
 							>
-								<PanelRightClose  className="h-4 w-4" />
+								<PanelRightOpen className="h-4 w-4" />
 							</button>
 						</div>
 					)}
@@ -514,6 +565,7 @@ export function Sidebar({ className }: SidebarProps) {
 													onChange={(e) => setNewFolder({ ...newFolder, name: e.target.value })}
 													placeholder="Enter folder name"
 													className="mt-1"
+													autoFocus
 												/>
 											</div>
 

@@ -172,6 +172,7 @@ export const useNotesStore = create<NotesStore>()(
 					),
 				}));
 			},
+			
 		}),
 		{
 			name: "nextnote-storage",
