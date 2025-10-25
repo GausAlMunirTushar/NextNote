@@ -79,7 +79,7 @@ export function ProfileDropdown({ user, className }: ProfileDropdownProps) {
 				>
 					<Avatar className="h-8 w-8 border-2 border-transparent hover:border-primary/20 transition-colors">
 						<AvatarImage src={user.avatar} alt={user.name} />
-						<AvatarFallback className="bg-gradient-to-br from-cyan-500 to-cyan-600 text-white font-medium text-sm">
+						<AvatarFallback className="bg-primary text-white font-medium text-sm">
 							{getInitials(user.name)}
 						</AvatarFallback>
 					</Avatar>
@@ -96,7 +96,7 @@ export function ProfileDropdown({ user, className }: ProfileDropdownProps) {
 					<div className="flex items-center gap-3">
 						<Avatar className="h-10 w-10">
 							<AvatarImage src={user.avatar} alt={user.name} />
-							<AvatarFallback className="bg-gradient-to-br from-cyan-500 to-cyan-600  text-white font-medium">
+							<AvatarFallback className="bg-gradient-to-br from-teal-500 to-cyan-600  text-white font-medium">
 								{getInitials(user.name)}
 							</AvatarFallback>
 						</Avatar>
