@@ -12,6 +12,7 @@ export interface Note {
 	title: string;
 	content: string;
 	labels: string[];
+	folderId: string | null; // NEW: Add folder reference
 	createdAt: string;
 	updatedAt: string;
 	starred: boolean;
@@ -20,15 +21,30 @@ export interface Note {
 interface NotesStore {
 	notes: Note[];
 	labels: Label[];
+	
+	// Note CRUD (KEEP EXISTING)
 	addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
 	updateNote: (id: string, note: Partial<Note>) => void;
 	deleteNote: (id: string) => void;
+	
+	// Labels (KEEP EXISTING)
 	addLabel: (label: Omit<Label, "id">) => void;
 	deleteLabel: (id: string) => void;
+	
+	// Filters (KEEP EXISTING)
 	filterNotesByLabel: (labelId: string) => Note[];
 	sortNotesByDate: (order: "asc" | "desc") => Note[];
-	shareNote: (id: string) => string; // Returns shareable URL
+	
+	// Sharing (KEEP EXISTING)
+	shareNote: (id: string) => string;
 	getShareableNote: (id: string) => { title: string; content: string } | null;
+	
+	// NEW: Folder-related functions
+	getNotesByFolder: (folderId: string | null) => Note[];
+	getStarredNotes: () => Note[];
+	getRecentNotes: (limit?: number) => Note[];
+	searchNotes: (query: string) => Note[];
+	moveNoteToFolder: (noteId: string, folderId: string | null) => void;
 }
 
 export const useNotesStore = create<NotesStore>()(
@@ -36,6 +52,8 @@ export const useNotesStore = create<NotesStore>()(
 		(set, get) => ({
 			notes: [],
 			labels: [],
+			
+			// KEEP EXISTING: Note CRUD
 			addNote: (note) => {
 				set((state) => ({
 					notes: [
@@ -67,6 +85,8 @@ export const useNotesStore = create<NotesStore>()(
 					notes: state.notes.filter((n) => n.id !== id),
 				}));
 			},
+			
+			// KEEP EXISTING: Labels
 			addLabel: (label) => {
 				set((state) => ({
 					labels: [
@@ -80,6 +100,8 @@ export const useNotesStore = create<NotesStore>()(
 					labels: state.labels.filter((l) => l.id !== id),
 				}));
 			},
+			
+			// KEEP EXISTING: Filters
 			filterNotesByLabel: (labelId: string): Note[] => {
 				const state = get();
 				return state.notes.filter((note) =>
@@ -96,8 +118,9 @@ export const useNotesStore = create<NotesStore>()(
 						  new Date(a.updatedAt).getTime()
 				);
 			},
+			
+			// KEEP EXISTING: Sharing
 			shareNote: (id: string) => {
-				// In a real app, this would generate a unique share token
 				return `${window.location.origin}/notes/${id}`;
 			},
 			getShareableNote: (id: string) => {
@@ -107,6 +130,47 @@ export const useNotesStore = create<NotesStore>()(
 					title: note.title,
 					content: note.content,
 				};
+			},
+			
+			// NEW: Folder-related functions
+			getNotesByFolder: (folderId: string | null): Note[] => {
+				const state = get();
+				return state.notes.filter(note => note.folderId === folderId);
+			},
+			
+			getStarredNotes: (): Note[] => {
+				const state = get();
+				return state.notes.filter(note => note.starred);
+			},
+			
+			getRecentNotes: (limit: number = 10): Note[] => {
+				const state = get();
+				return [...state.notes]
+					.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+					.slice(0, limit);
+			},
+			
+			searchNotes: (query: string): Note[] => {
+				const state = get();
+				const lowercaseQuery = query.toLowerCase();
+				return state.notes.filter(note =>
+					note.title.toLowerCase().includes(lowercaseQuery) ||
+					note.content.toLowerCase().includes(lowercaseQuery)
+				);
+			},
+			
+			moveNoteToFolder: (noteId: string, folderId: string | null) => {
+				set((state) => ({
+					notes: state.notes.map((n) =>
+						n.id === noteId
+							? {
+									...n,
+									folderId,
+									updatedAt: new Date().toISOString(),
+							  }
+							: n
+					),
+				}));
 			},
 		}),
 		{
