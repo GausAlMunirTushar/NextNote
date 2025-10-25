@@ -35,7 +35,7 @@ export function Header() {
 					Save & Sync
 				</Button>
 				<ThemeToggle />
-				<NotificationDropdown />
+				{/* <NotificationDropdown /> */}
 				<ProfileDropdown user={userData} />
 			</div>
 		</header>
