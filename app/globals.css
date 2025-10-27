@@ -124,4 +124,44 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Light theme scrollbar */
+  :root {
+    --scrollbar-track: oklch(0.96 0 0);
+    --scrollbar-thumb: oklch(0.8 0 0);
+    --scrollbar-thumb-hover: oklch(0.7 0 0);
+  }
+
+  /* Dark theme scrollbar */
+  .dark {
+    --scrollbar-track: oklch(0.22 0 0);
+    --scrollbar-thumb: oklch(0.45 0 0);
+    --scrollbar-thumb-hover: oklch(0.55 0 0);
+  }
+
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
 }
+

@@ -152,7 +152,9 @@ export function Sidebar({ className }: SidebarProps) {
 		}, 0)
 	}
 
-	const handleRename = (folderId: string) => {
+	const handleRename = (folderId: string, e: React.MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
 		if (editFolderName.trim() && editFolderName.trim() !== getFolderById(folderId)?.name) {
 			updateFolder(folderId, { name: editFolderName.trim() })
 		}
@@ -173,7 +175,7 @@ export function Sidebar({ className }: SidebarProps) {
 	const handleFolderClick = (folder: any, e: React.MouseEvent) => {
 		e.preventDefault()
 		e.stopPropagation()
-		router.push(`/f/${folder.slug}`)
+		router.push(`/folders/${folder.slug}`)
 	}
 
 	const getFolderById = (id: string) => {
@@ -295,9 +297,9 @@ export function Sidebar({ className }: SidebarProps) {
 											ref={editInputRef}
 											value={editFolderName}
 											onChange={(e) => setEditFolderName(e.target.value)}
-											onBlur={() => handleRename(folder.id)}
+											onBlur={() => handleRename(folder.id, e)}
 											onKeyDown={(e) => {
-												if (e.key === 'Enter') handleRename(folder.id)
+												if (e.key === 'Enter') handleRename(folder.id, e)
 												if (e.key === 'Escape') setEditingFolderId(null)
 											}}
 											className="h-6 text-sm px-1 flex-1"
@@ -428,7 +430,7 @@ export function Sidebar({ className }: SidebarProps) {
 			>
 				{/* Header */}
 				<div className={cn(
-					"flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-800 relative min-h-[80px]",
+					"flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-800 relative h-14",
 					isCollapsed ? "px-3" : "px-4"
 				)}>
 					{/* Logo */}
@@ -458,7 +460,7 @@ export function Sidebar({ className }: SidebarProps) {
 						<button
 							onClick={toggleSidebar}
 							className={cn(
-								"flex items-center justify-center w-6 h-6 rounded-md",
+								"flex items-center cursor-pointer justify-center w-6 h-6 rounded-md",
 								"hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors",
 								"text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
 							)}
@@ -474,7 +476,7 @@ export function Sidebar({ className }: SidebarProps) {
 							<button
 								onClick={toggleSidebar}
 								className={cn(
-									"flex items-center justify-center w-8 h-8 rounded-lg",
+									"flex items-center cursor-pointer justify-center w-8 h-8 rounded-lg",
 									"bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600",
 									"hover:shadow transition-all duration-300",
 									"text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
@@ -537,9 +539,11 @@ export function Sidebar({ className }: SidebarProps) {
 					{!isCollapsed && (
 						<div className="mb-4 px-3">
 							<div className="flex items-center justify-between mb-2">
-								<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-									Folders
-								</h3>
+								<Link href="/folders">
+									<h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+										Folders
+									</h3>
+								</Link>
 								<Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
 									<DialogTrigger asChild>
 										<button
@@ -696,7 +700,7 @@ export function Sidebar({ className }: SidebarProps) {
 										{mockUser.name}
 									</p>
 									<p className="text-xs text-muted-foreground truncate">
-										{mockUser.email}
+										{mockUser.plan}
 									</p>
 								</div>
 							</>
