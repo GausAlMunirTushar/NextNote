@@ -8,7 +8,6 @@ import {
 	FilePlus,
 	Files,
 	CheckSquare,
-	Calendar,
 	Star,
 	Users,
 	Folder,
@@ -22,6 +21,7 @@ import {
 	PanelRightOpen,
 	PanelRightClose,
 	Edit,
+	House
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -48,6 +48,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const mainNavigation = [
+	{ name: "Home", href: "/dashboard", icon: House },
 	{ name: "New Note", href: "/new", icon: FilePlus },
 	{ name: "All Notes", href: "/notes", icon: Files },
 	{ name: "Tasks", href: "/tasks", icon: CheckSquare },
