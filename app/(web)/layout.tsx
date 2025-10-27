@@ -1,3 +1,4 @@
+import WebHeader from "@/components/layouts/WebHeader"
 
 
 export default function WebLayout({
@@ -6,8 +7,11 @@ export default function WebLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<main className="flex-1 bg-gray-100 dark:bg-background overflow-y-auto p-2">
-			{children}
-		</main>
+		<>
+			<WebHeader />
+			<main className="flex-1 bg-gray-100 dark:bg-background overflow-y-auto">
+				{children}
+			</main>
+		</>
 	)
 }
