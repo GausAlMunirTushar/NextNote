@@ -37,12 +37,12 @@ export default function LoginPage() {
 			description: "You have successfully logged in.",
 		})
 
-		router.push("//new")
+		router.push("/new")
 		setIsLoading(false)
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+		<div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-background p-4">
 			<Card className="w-full max-w-md py-8">
 				<CardHeader className="space-y-1 text-center">
 					<div className="flex justify-center mb-2">
@@ -51,7 +51,6 @@ export default function LoginPage() {
 							<span className="text-2xl font-bold">NextNote</span>
 						</div>
 					</div>
-					{/* <CardTitle className="text-xl sm:text-2xl">Welcome back</CardTitle> */}
 					<CardDescription className="text-sm">Enter your credentials to access your notes</CardDescription>
 				</CardHeader>
 				<form onSubmit={handleSubmit(onSubmit)}>

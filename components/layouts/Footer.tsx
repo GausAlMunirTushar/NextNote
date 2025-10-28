@@ -85,7 +85,7 @@ export default function Footer() {
 
 	return (
 		<footer className="bg-gradient-to-b from-background to-muted/30 border-t border-border">
-			{/* Newsletter Section */}
+			{/* Newsletter Section
 			<motion.section
 				initial={{ opacity: 0, y: 30 }}
 				whileInView={{ opacity: 1, y: 0 }}
@@ -122,7 +122,7 @@ export default function Footer() {
 						</p>
 					</div>
 				</div>
-			</motion.section>
+			</motion.section> */}
 
 			{/* Main Footer Content */}
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
