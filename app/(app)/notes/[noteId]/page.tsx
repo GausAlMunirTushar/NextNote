@@ -7,12 +7,14 @@ import { useNotesStore } from "@/store/notes-store";
 import { useToast } from "@/hooks/use-toast";
 import { NoteHeader } from "@/views/app/notes/note-header";
 import NextEditor from "@/components/next-editor";
+import MoveModal from "@/components/modal/move-modal";
 
 export default function NotePage() {
 	const router = useRouter();
 	const { toast } = useToast();
 	const { noteId } = useParams();
 	const { notes, updateNote, addNote } = useNotesStore();
+	const [showMoveModal, setShowMoveModal] = useState(false);
 
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
@@ -21,6 +23,7 @@ export default function NotePage() {
 	const [isLoading, setIsLoading] = useState(true);
 
 	const noteIdStr = Array.isArray(noteId) ? noteId[0] : noteId;
+	const currentNote = notes.find(n => n.id === noteIdStr);
 
 	useEffect(() => {
 		if (noteIdStr === "new") {
@@ -118,10 +121,7 @@ export default function NotePage() {
 	};
 
 	const handleMoveTo = () => {
-		toast({
-			title: "Move to",
-			description: "Move functionality coming soon",
-		});
+		setShowMoveModal(true);
 	};
 
 	const handleCopyTo = () => {
@@ -176,6 +176,12 @@ export default function NotePage() {
 					documentId={noteIdStr}
 				/>
 			</div>
+			<MoveModal
+				open={showMoveModal}
+				onOpenChange={setShowMoveModal}
+				noteId={noteIdStr}
+				currentFolderId={currentNote?.folderId || null}
+			/>
 		</div>
 	);
 }
