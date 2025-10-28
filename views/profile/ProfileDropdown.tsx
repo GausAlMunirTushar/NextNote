@@ -1,4 +1,3 @@
-// components/profile-dropdown.tsx
 "use client"
 
 import { useState } from "react"
@@ -29,6 +28,8 @@ import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { signOut } from "next-auth/react" 
+import { useAuthStore } from "@/store/auth-store"
 
 interface UserData {
 	name: string
@@ -47,22 +48,24 @@ export function ProfileDropdown({ user, className }: ProfileDropdownProps) {
 	const { theme, setTheme } = useTheme()
 	const router = useRouter()
 	const { toast } = useToast()
+	const setUser = useAuthStore((s) => s.setUser) // ✅ Zustand update
 
 	const getInitials = (name: string) => {
 		return name
-			.split(' ')
-			.map(part => part.charAt(0))
-			.join('')
+			.split(" ")
+			.map((part) => part.charAt(0))
+			.join("")
 			.toUpperCase()
 			.slice(0, 2)
 	}
 
-	const handleSignOut = () => {
+	const handleSignOut = async () => {
+		await signOut({ redirect: false }) // ✅ Proper NextAuth signOut
+		setUser(null) // ✅ Clear Zustand store
 		toast({
 			title: "Signed out",
 			description: "You have been successfully signed out.",
 		})
-		// Add your sign out logic here
 		router.push("/")
 	}
 
@@ -86,17 +89,13 @@ export function ProfileDropdown({ user, className }: ProfileDropdownProps) {
 				</Button>
 			</DropdownMenuTrigger>
 
-			<DropdownMenuContent
-				className="w-64 mt-2 mr-2 p-2"
-				align="end"
-				forceMount
-			>
+			<DropdownMenuContent className="w-64 mt-2 mr-2 p-2" align="end" forceMount>
 				{/* User Info Section */}
 				<DropdownMenuLabel className="p-3 font-normal">
 					<div className="flex items-center gap-3">
 						<Avatar className="h-10 w-10">
 							<AvatarImage src={user.avatar} alt={user.name} />
-							<AvatarFallback className="bg-gradient-to-br from-teal-500 to-cyan-600  text-white font-medium">
+							<AvatarFallback className="bg-gradient-to-br from-teal-500 to-cyan-600 text-white font-medium">
 								{getInitials(user.name)}
 							</AvatarFallback>
 						</Avatar>
@@ -150,7 +149,10 @@ export function ProfileDropdown({ user, className }: ProfileDropdownProps) {
 
 				{/* Preferences */}
 				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={handleThemeToggle} className="cursor-pointer">
+					<DropdownMenuItem
+						onClick={handleThemeToggle}
+						className="cursor-pointer"
+					>
 						{theme === "dark" ? (
 							<Sun className="h-4 w-4 mr-2" />
 						) : (

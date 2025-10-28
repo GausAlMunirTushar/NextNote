@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast"
 import { loginSchema, type LoginInput } from "@/lib/validations/auth"
 import Image from "next/image"
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
 	const router = useRouter()
@@ -28,18 +29,23 @@ export default function LoginPage() {
 	})
 
 	const onSubmit = async (data: LoginInput) => {
-		setIsLoading(true)
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 1000))
+	setIsLoading(true)
+	const res = await signIn("credentials", {
+		email: data.email,
+		password: data.password,
+		redirect: false,
+	})
 
-		toast({
-			title: "Welcome back!",
-			description: "You have successfully logged in.",
-		})
-
+	if (res?.ok) {
+		toast({ title: "Welcome back!", description: "Logged in successfully." })
 		router.push("/new")
-		setIsLoading(false)
+	} else {
+		toast({ title: "Login failed", description: res?.error || "Invalid credentials", variant: "destructive" })
 	}
+
+	setIsLoading(false)
+}
+
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-background p-4">

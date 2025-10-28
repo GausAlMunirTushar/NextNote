@@ -5,8 +5,10 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import "../styles/globals.css"
+import "@/styles/globals.css"
 import { Suspense } from "react"
+import NextAuthSessionProvider from "@/components/session-provider"; // ✅
+import AuthSessionSync from "@/components/auth-session-sync"; // ✅
 
 export const metadata: Metadata = {
 	title: "NextNote - Modern Note Taking App",
@@ -23,8 +25,12 @@ export default function RootLayout({
 			<body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
 				<Suspense fallback={<div>Loading...</div>}>
 					<ThemeProvider>
-						{children}
-						<Toaster />
+						
+            <NextAuthSessionProvider>
+              <AuthSessionSync /> 
+              {children}
+              <Toaster />
+            </NextAuthSessionProvider>
 					</ThemeProvider>
 				</Suspense>
 				<Analytics />

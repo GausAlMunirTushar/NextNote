@@ -1,56 +1,58 @@
-// lib/auth.ts
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import GitHubProvider from 'next-auth/providers/github';
-import EmailProvider from 'next-auth/providers/email';
+// src/lib/auth.ts
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import { connectDatabase } from "@/config/database"; // ✅ তোমার db config
+import { User } from "@/models/User";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import clientPromise from "./mongo-client";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions = {
+  adapter: MongoDBAdapter(clientPromise),
+  session: { strategy: "jwt" },
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-    EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD,
-        },
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
-      from: process.env.EMAIL_FROM,
+      async authorize(creds) {
+        // ✅ connectDatabase() ফাংশন সঠিকভাবে কল করো
+        await connectDatabase();
+
+        const user = await User.findOne({ email: creds?.email });
+        if (!user) throw new Error("User not found");
+        if (!user.password) throw new Error("Use Google login");
+
+        const valid = await bcrypt.compare(creds!.password!, user.password);
+        if (!valid) throw new Error("Invalid credentials");
+
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          plan: user.plan,
+          subscriptionStatus: user.subscriptionStatus,
+        };
+      },
     }),
   ],
   callbacks: {
-    async session({ token, session }) {
-      // Get user from your store/database
-      const user = await getUserByEmail(token.email!);
-      
-      if (user) {
-        session.user.id = user.id;
-        session.user.plan = user.plan;
-        session.user.stripeCustomerId = user.stripeCustomerId;
-        session.user.subscriptionStatus = user.subscriptionStatus;
-      }
-      
-      return session;
-    },
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.plan = user.plan;
-      }
+      if (user) token.user = user;
       return token;
     },
+    async session({ session, token }) {
+      session.user = token.user as any;
+      return session;
+    },
   },
-  pages: {
-    signIn: '/auth/signin',
-    signUp: '/auth/signup',
-    verifyRequest: '/auth/verify-request',
-  },
-});
+  secret: process.env.AUTH_SECRET!,
+};

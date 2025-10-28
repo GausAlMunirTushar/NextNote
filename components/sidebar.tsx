@@ -46,6 +46,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuthStore } from "@/store/auth-store"
 
 const mainNavigation = [
 	{ name: "Home", href: "/dashboard", icon: House },
@@ -101,7 +102,7 @@ export function Sidebar({ className }: SidebarProps) {
 		name: "",
 		color: "#3b82f6"
 	})
-
+	const { user, isAuthenticated } = useAuthStore()
 	const pathname = usePathname()
 	const router = useRouter()
 	const editInputRef = useRef<HTMLInputElement>(null)
@@ -183,11 +184,6 @@ export function Sidebar({ className }: SidebarProps) {
 		return folders.find(f => f.id === id)
 	}
 
-	const mockUser = {
-		name: "John Doe",
-		email: "john@example.com",
-		plan: "Pro"
-	}
 
 	// Navigation Item for expanded state
 	const NavigationItem = ({ item, isActive }: { item: any, isActive: boolean }) => (
@@ -678,35 +674,63 @@ export function Sidebar({ className }: SidebarProps) {
 						))}
 					</div>
 
+
 					{/* User Profile */}
-					<div className={cn(
-						"flex items-center rounded-lg transition-all p-2",
-						"hover:bg-sidebar-accent",
-						isCollapsed ? "justify-center" : "gap-3"
-					)}>
-						{isCollapsed ? (
-							<SidebarTooltip content={`${mockUser.name} (${mockUser.plan})`}>
-								<div>
+					<div
+						className={cn(
+							"flex items-center rounded-lg transition-all p-2",
+							"hover:bg-sidebar-accent",
+							isCollapsed ? "justify-center" : "gap-3"
+						)}
+					>
+						{isAuthenticated && user ? (
+							// ✅ Logged-in user
+							isCollapsed ? (
+								<SidebarTooltip content={`${user.name} (${user.plan})`}>
+									<div>
+										<ProfileDropdown
+											user={{
+												name: user.name,
+												email: user.email,
+												avatar: user.image,
+												plan: user.plan,
+											}}
+											className="scale-90"
+										/>
+									</div>
+								</SidebarTooltip>
+							) : (
+								<>
 									<ProfileDropdown
-										user={mockUser}
-										className="scale-90"
+										user={{
+											name: user.name,
+											email: user.email,
+											avatar: user.image,
+											plan: user.plan,
+										}}
 									/>
-								</div>
-							</SidebarTooltip>
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-sidebar-foreground truncate">
+											{user.name}
+										</p>
+										<p className="text-xs text-muted-foreground truncate capitalize">
+											{user.plan} Plan
+										</p>
+									</div>
+								</>
+							)
 						) : (
-							<>
-								<ProfileDropdown user={mockUser} />
-								<div className="flex-1 min-w-0">
-									<p className="text-sm font-medium text-sidebar-foreground truncate">
-										{mockUser.name}
-									</p>
-									<p className="text-xs text-muted-foreground truncate">
-										{mockUser.plan}
-									</p>
-								</div>
-							</>
+							// ⚙️ Not logged in → show Sign in
+							<Button
+								onClick={() => signIn("google")}
+								className="w-full justify-center"
+								variant="outline"
+							>
+								Sign in
+							</Button>
 						)}
 					</div>
+
 				</div>
 
 				{/* Mobile Menu Button */}

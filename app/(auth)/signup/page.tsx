@@ -27,18 +27,25 @@ export default function SignupPage() {
 	})
 
 	const onSubmit = async (data: SignupInput) => {
-		setIsLoading(true)
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 1000))
+	setIsLoading(true)
 
-		toast({
-			title: "Account created!",
-			description: "Welcome to NextNote. Start taking notes now.",
-		})
+	const res = await fetch("/api/signup", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(data),
+	})
 
-		router.push("//new")
-		setIsLoading(false)
+	if (res.ok) {
+		toast({ title: "Account created!", description: "You can now login." })
+		router.push("/login")
+	} else {
+		const error = await res.json()
+		toast({ title: "Signup failed", description: error.error, variant: "destructive" })
 	}
+
+	setIsLoading(false)
+}
+
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
