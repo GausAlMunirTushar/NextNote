@@ -88,7 +88,7 @@ export function NoteHeader({
 	return (
 		<>
 			{/* Header */}
-			<div className="flex items-center justify-between bg-background h-14 px-5">
+			<div className="flex items-center justify-between bg-background border-b h-14 px-5">
 				{/* Left Section */}
 				<div className="flex items-center gap-3 flex-1 min-w-0">
 					{/* Icon */}
