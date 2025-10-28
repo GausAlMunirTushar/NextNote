@@ -1,85 +1,134 @@
+// app/notes/[noteId]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import NoteEditor from "@/components/note-editor"
+import { useRouter, useParams } from "next/navigation";
 import { useNotesStore } from "@/store/notes-store";
 import { useToast } from "@/hooks/use-toast";
-import { Save, X, ArrowLeft } from "lucide-react";
-import { useParams } from "next/navigation";
+import { NoteHeader } from "@/views/app/notes/note-header";
+import NextEditor from "@/components/next-editor";
 
-export default function EditNotePage() {
+export default function NotePage() {
 	const router = useRouter();
 	const { toast } = useToast();
 	const { noteId } = useParams();
-	const { notes, updateNote } = useNotesStore();
+	const { notes, updateNote, addNote } = useNotesStore();
+
 	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
+	const [isSaved, setIsSaved] = useState(true);
+	const [starred, setStarred] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 
-	// Ensure noteId is a string
 	const noteIdStr = Array.isArray(noteId) ? noteId[0] : noteId;
 
-	// Fetch the note data by noteId
 	useEffect(() => {
-		if (noteIdStr) {
-			if (noteIdStr === "new") {
-				// This is a new note, initialize with empty values
-				setTitle("");
-				setContent("");
+		if (noteIdStr === "new") {
+			// Create new note and redirect to its ID
+			const newNote = addNote({
+				title: "",
+				content: "",
+				labels: [],
+				starred: false,
+				folderId: null,
+			});
+
+			// Redirect to the actual note ID
+			router.replace(`/notes/${newNote.id}`);
+		} else {
+			// Load existing note
+			const note = notes.find((n) => n.id === noteIdStr);
+			if (note) {
+				setTitle(note.title);
+				setContent(note.content);
+				setStarred(note.starred);
 				setIsLoading(false);
 			} else {
-				// This is an existing note, find it
-				const note = notes.find((n) => n.id === noteIdStr);
-				if (note) {
-					setTitle(note.title);
-					setContent(note.content);
-					setIsLoading(false);
-				} else {
-					toast({
-						title: "Note not found",
-						description: "The note you are trying to edit does not exist.",
-						variant: "destructive",
-					});
-					router.push("/notes");
-				}
+				toast({
+					title: "Note not found",
+					description: "The note you are looking for does not exist.",
+					variant: "destructive",
+				});
+				router.push("/notes");
 			}
 		}
-	}, [noteIdStr, notes, router, toast]);
+	}, [noteIdStr, notes, router, toast, addNote]);
 
-	const handleSave = () => {
-		if (!title.trim()) {
-			toast({
-				title: "Missing title",
-				description: "Please add a title before saving.",
-				variant: "destructive",
-			});
-			return;
+	// Auto-save functionality
+	useEffect(() => {
+		if (!isLoading && noteIdStr && noteIdStr !== "new") {
+			const timeoutId = setTimeout(() => {
+				updateNote(noteIdStr, {
+					title: title.trim() || "",
+					content,
+					starred,
+				});
+				setIsSaved(true);
+			}, 1000);
+
+			return () => clearTimeout(timeoutId);
 		}
+	}, [title, content, starred, noteIdStr, updateNote, isLoading]);
 
-		if (noteIdStr === "new") {
-			// Create new note
-			// You'll need to implement addNote functionality here
-			toast({
-				title: "Create new note",
-				description: "New note creation would be implemented here.",
-			});
-		} else {
-			// Update existing note
-			updateNote(noteIdStr, {
-				title: title.trim(),
-				content: content.trim(),
-				updatedAt: new Date().toISOString()
-			});
+	const handleManualSave = () => {
+		if (!noteIdStr || noteIdStr === "new") return;
 
-			toast({
-				title: "Note updated",
-				description: "Your note has been updated successfully.",
-			});
+		updateNote(noteIdStr, {
+			title: title.trim() || "Untitled Document",
+			content,
+			starred,
+		});
 
-			router.push("/notes");
-		}
+		setIsSaved(true);
+		toast({
+			title: "Note saved!",
+			description: "Your note has been saved successfully.",
+		});
+	};
+
+	const handleExport = () => {
+		const blob = new Blob([`# ${title}\n\n${content.replace(/<[^>]*>/g, '')}`], {
+			type: 'text/plain'
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${title || 'untitled'}.txt`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+
+		toast({
+			title: "Exported!",
+			description: "Note exported as text file.",
+		});
+	};
+
+	const toggleStar = () => {
+		setStarred(!starred);
+		setIsSaved(false);
+	};
+
+	const handleAddLabel = () => {
+		toast({
+			title: "Add label",
+			description: "Label functionality coming soon",
+		});
+	};
+
+	const handleMoveTo = () => {
+		toast({
+			title: "Move to",
+			description: "Move functionality coming soon",
+		});
+	};
+
+	const handleCopyTo = () => {
+		toast({
+			title: "Copy to",
+			description: "Copy functionality coming soon",
+		});
 	};
 
 	if (isLoading) {
@@ -94,45 +143,37 @@ export default function EditNotePage() {
 
 	return (
 		<div className="h-full flex flex-col">
-			<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-				<div className="flex items-center gap-2">
-					<Button
-						variant="ghost"
-						size="icon"
-						onClick={() => router.push("/notes")}
-						className="h-8 w-8"
-					>
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
-					<h2 className="text-xl sm:text-2xl font-bold">
-						{noteIdStr === "new" ? "Create New Note" : "Edit Note"}
-					</h2>
-				</div>
-				<div className="flex gap-2 w-full sm:w-auto">
-					<Button
-						variant="outline"
-						onClick={() => router.push("/notes")}
-						className="flex-1 sm:flex-none"
-						size="sm"
-					>
-						<X className="h-4 w-4 sm:mr-2" />
-						<span className="hidden sm:inline">Cancel</span>
-					</Button>
+			<NoteHeader
+				title={title}
+				content={content}
+				isSaved={isSaved}
+				onSave={handleManualSave}
+				onTitleChange={(newTitle) => {
+					setTitle(newTitle);
+					setIsSaved(false);
+				}}
+				onExport={handleExport}
+				starred={starred}
+				onStarToggle={toggleStar}
+				onAddLabel={handleAddLabel}
+				onMoveTo={handleMoveTo}
+				onCopyTo={handleCopyTo}
+			/>
 
-					<Button onClick={handleSave} className="flex-1 sm:flex-none" size="sm">
-						<Save className="h-4 w-4 sm:mr-2" />
-						<span className="hidden sm:inline">
-							{noteIdStr === "new" ? "Create Note" : "Save Note"}
-						</span>
-					</Button>
-				</div>
-			</div>
-			<div className="flex-1 overflow-hidden bg-card rounded-lg">
-				<NoteEditor
+			<div className="flex-1 overflow-hidden">
+				<NextEditor
 					title={title}
 					content={content}
-					onTitleChange={setTitle}
-					onContentChange={setContent}
+					onTitleChange={(newTitle) => {
+						setTitle(newTitle);
+						setIsSaved(false);
+					}}
+					onContentChange={(newContent) => {
+						setContent(newContent);
+						setIsSaved(false);
+					}}
+					isCollaborative={true}
+					documentId={noteIdStr}
 				/>
 			</div>
 		</div>

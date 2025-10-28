@@ -334,7 +334,7 @@ export default function NextEditor({
 
 			{/* Editor Content */}
 			<div className="flex-1 overflow-y-auto relative">
-				<div className="max-w-4xl mx-auto px-6 py-8">
+				<div className="max-w-5xl mx-auto px-6 py-8">
 					{/* Title Input */}
 					<Input
 						value={title}

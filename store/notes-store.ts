@@ -12,7 +12,7 @@ export interface Note {
 	title: string;
 	content: string;
 	labels: string[];
-	folderId: string | null; // NEW: Add folder reference
+	folderId: string | null;
 	createdAt: string;
 	updatedAt: string;
 	starred: boolean;
@@ -21,24 +21,24 @@ export interface Note {
 interface NotesStore {
 	notes: Note[];
 	labels: Label[];
-	
+
 	// Note CRUD (KEEP EXISTING)
-	addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => void;
+	addNote: (note: Omit<Note, "id" | "createdAt" | "updatedAt">) => Note;
 	updateNote: (id: string, note: Partial<Note>) => void;
 	deleteNote: (id: string) => void;
-	
+
 	// Labels (KEEP EXISTING)
 	addLabel: (label: Omit<Label, "id">) => void;
 	deleteLabel: (id: string) => void;
-	
+
 	// Filters (KEEP EXISTING)
 	filterNotesByLabel: (labelId: string) => Note[];
 	sortNotesByDate: (order: "asc" | "desc") => Note[];
-	
+
 	// Sharing (KEEP EXISTING)
 	shareNote: (id: string) => string;
 	getShareableNote: (id: string) => { title: string; content: string } | null;
-	
+
 	// NEW: Folder-related functions
 	getNotesByFolder: (folderId: string | null) => Note[];
 	getStarredNotes: () => Note[];
@@ -52,20 +52,35 @@ export const useNotesStore = create<NotesStore>()(
 		(set, get) => ({
 			notes: [],
 			labels: [],
-			
+
 			// KEEP EXISTING: Note CRUD
+			// addNote: (note) => {
+			// 	set((state) => ({
+			// 		notes: [
+			// 			...state.notes,
+			// 			{
+			// 				...note,
+			// 				id: crypto.randomUUID(),
+			// 				createdAt: new Date().toISOString(),
+			// 				updatedAt: new Date().toISOString(),
+			// 			},
+			// 		],
+			// 	}));
+			// 	return newNote;
+			// },
 			addNote: (note) => {
+				const newNote: Note = {
+					...note,
+					id: crypto.randomUUID(),
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				};
+
 				set((state) => ({
-					notes: [
-						...state.notes,
-						{
-							...note,
-							id: crypto.randomUUID(),
-							createdAt: new Date().toISOString(),
-							updatedAt: new Date().toISOString(),
-						},
-					],
+					notes: [...state.notes, newNote],
 				}));
+
+				return newNote;
 			},
 			updateNote: (id, note) => {
 				set((state) => ({
@@ -85,7 +100,7 @@ export const useNotesStore = create<NotesStore>()(
 					notes: state.notes.filter((n) => n.id !== id),
 				}));
 			},
-			
+
 			// KEEP EXISTING: Labels
 			addLabel: (label) => {
 				set((state) => ({
@@ -100,7 +115,7 @@ export const useNotesStore = create<NotesStore>()(
 					labels: state.labels.filter((l) => l.id !== id),
 				}));
 			},
-			
+
 			// KEEP EXISTING: Filters
 			filterNotesByLabel: (labelId: string): Note[] => {
 				const state = get();
@@ -118,7 +133,7 @@ export const useNotesStore = create<NotesStore>()(
 						  new Date(a.updatedAt).getTime()
 				);
 			},
-			
+
 			// KEEP EXISTING: Sharing
 			shareNote: (id: string) => {
 				return `${window.location.origin}/notes/${id}`;
@@ -131,34 +146,39 @@ export const useNotesStore = create<NotesStore>()(
 					content: note.content,
 				};
 			},
-			
+
 			// NEW: Folder-related functions
 			getNotesByFolder: (folderId: string | null): Note[] => {
 				const state = get();
-				return state.notes.filter(note => note.folderId === folderId);
+				return state.notes.filter((note) => note.folderId === folderId);
 			},
-			
+
 			getStarredNotes: (): Note[] => {
 				const state = get();
-				return state.notes.filter(note => note.starred);
+				return state.notes.filter((note) => note.starred);
 			},
-			
+
 			getRecentNotes: (limit: number = 10): Note[] => {
 				const state = get();
 				return [...state.notes]
-					.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+					.sort(
+						(a, b) =>
+							new Date(b.updatedAt).getTime() -
+							new Date(a.updatedAt).getTime()
+					)
 					.slice(0, limit);
 			},
-			
+
 			searchNotes: (query: string): Note[] => {
 				const state = get();
 				const lowercaseQuery = query.toLowerCase();
-				return state.notes.filter(note =>
-					note.title.toLowerCase().includes(lowercaseQuery) ||
-					note.content.toLowerCase().includes(lowercaseQuery)
+				return state.notes.filter(
+					(note) =>
+						note.title.toLowerCase().includes(lowercaseQuery) ||
+						note.content.toLowerCase().includes(lowercaseQuery)
 				);
 			},
-			
+
 			moveNoteToFolder: (noteId: string, folderId: string | null) => {
 				set((state) => ({
 					notes: state.notes.map((n) =>
@@ -172,7 +192,6 @@ export const useNotesStore = create<NotesStore>()(
 					),
 				}));
 			},
-			
 		}),
 		{
 			name: "nextnote-storage",
