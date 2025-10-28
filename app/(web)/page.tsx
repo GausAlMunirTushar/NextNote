@@ -148,23 +148,6 @@ export default function HomePage() {
 					</motion.div>
 				</div>
 			</section>
-
-			{/* Footer */}
-			<footer className="border-t border-border bg-muted/30 mt-auto">
-				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-					<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-						<div className="flex items-center gap-2">
-							<div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-								<span className="font-bold text-primary-foreground text-sm">NN</span>
-							</div>
-							<span className="font-semibold">NextNote</span>
-						</div>
-						<p className="text-sm text-muted-foreground text-center sm:text-left">
-							© {new Date().getFullYear()} NextNote. All rights reserved.
-						</p>
-					</div>
-				</div>
-			</footer>
 		</div>
 	);
 }

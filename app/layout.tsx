@@ -10,7 +10,7 @@ import { Suspense } from "react"
 
 export const metadata: Metadata = {
 	title: "NextNote - Modern Note Taking App",
-	description: "A beautiful, fast note-taking application built with Next.js",
+	description: "Modern Note Taking App",
 }
 
 export default function RootLayout({
