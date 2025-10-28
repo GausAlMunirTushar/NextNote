@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -15,12 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Copy,
   Download,
   Mail,
@@ -30,8 +23,6 @@ import {
   Lock,
   Check,
   Link2,
-  MessageSquare,
-  Files,
 } from "lucide-react";
 
 interface ShareNoteProps {
@@ -40,9 +31,17 @@ interface ShareNoteProps {
   title: string;
   content: string;
   onCopyLink: () => void;
+  documentId?: string;
 }
 
-export default function ShareNote({ open, onOpenChange, title, content }: ShareNoteProps) {
+export default function ShareNote({ 
+  open, 
+  onOpenChange, 
+  title, 
+  content, 
+  onCopyLink,
+  documentId 
+}: ShareNoteProps) {
   const [shareSettings, setShareSettings] = useState({
     public: false,
     allowComments: true,
@@ -50,15 +49,23 @@ export default function ShareNote({ open, onOpenChange, title, content }: ShareN
   });
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = `${window.location.origin}/share/note-${Date.now()}`;
+  // Use environment-based URL or fallback
+  const getShareUrl = () => {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextnote.app';
+    const docId = documentId || 'new-document';
+    return `${baseUrl}/share/${docId}`;
+  };
+
+  const shareUrl = getShareUrl();
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      onCopyLink();
     } catch (err) {
-      // Error handling is done in parent component
+      console.error('Failed to copy link:', err);
     }
   };
 
@@ -82,7 +89,7 @@ export default function ShareNote({ open, onOpenChange, title, content }: ShareN
 
   const shareViaEmail = () => {
     const subject = encodeURIComponent(title || "Check out this note");
-    const body = encodeURIComponent(`Title: ${title}\n\nContent: ${content.replace(/<[^>]*>/g, '')}`);
+    const body = encodeURIComponent(`Title: ${title}\n\nContent: ${content.replace(/<[^>]*>/g, '')}\n\nView it here: ${shareUrl}`);
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
 

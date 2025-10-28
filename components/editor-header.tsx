@@ -50,6 +50,7 @@ import type { Editor } from "@tiptap/react";
 
 interface EditorHeaderProps {
   editor: Editor | null;
+  onImageUpload?: (file: File) => void; // Add this line
 }
 
 export function EditorHeader({ editor }: EditorHeaderProps) {
