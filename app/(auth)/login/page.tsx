@@ -29,22 +29,22 @@ export default function LoginPage() {
 	})
 
 	const onSubmit = async (data: LoginInput) => {
-	setIsLoading(true)
-	const res = await signIn("credentials", {
-		email: data.email,
-		password: data.password,
-		redirect: false,
-	})
+		setIsLoading(true)
+		const res = await signIn("credentials", {
+			email: data.email,
+			password: data.password,
+			redirect: false,
+		})
 
-	if (res?.ok) {
-		toast({ title: "Welcome back!", description: "Logged in successfully." })
-		router.push("/new")
-	} else {
-		toast({ title: "Login failed", description: res?.error || "Invalid credentials", variant: "destructive" })
+		if (res?.ok) {
+			toast({ title: "Welcome back!", description: "Logged in successfully." })
+			router.push("/dashboard")
+		} else {
+			toast({ title: "Login failed", description: res?.error || "Invalid credentials", variant: "destructive" })
+		}
+
+		setIsLoading(false)
 	}
-
-	setIsLoading(false)
-}
 
 
 	return (
